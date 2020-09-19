@@ -201,6 +201,7 @@ namespace Piranha
             Instance._fields.Register<Extend.Fields.ReadonlyField>();
             Instance._fields.Register<Extend.Fields.StringField>();
             Instance._fields.Register<Extend.Fields.TextField>();
+            Instance._fields.Register<Extend.Fields.ColorField>();
             Instance._fields.Register<Extend.Fields.VideoField>();
 
             // Compose select field types
@@ -222,6 +223,7 @@ namespace Piranha
 
             // Compose serializers
             Instance._serializers.Register<Extend.Fields.CheckBoxField>(new CheckBoxFieldSerializer<Extend.Fields.CheckBoxField>());
+            Instance._serializers.Register<Extend.Fields.ColorField>(new StringFieldSerializer<Extend.Fields.ColorField>());
             Instance._serializers.Register<Extend.Fields.DateField>(new DateFieldSerializer());
             Instance._serializers.Register<Extend.Fields.DocumentField>(new DocumentFieldSerializer());
             Instance._serializers.Register<Extend.Fields.HtmlField>(new StringFieldSerializer<Extend.Fields.HtmlField>());

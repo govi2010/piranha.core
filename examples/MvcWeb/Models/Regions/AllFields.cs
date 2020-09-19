@@ -58,6 +58,9 @@ namespace MvcWeb.Models.Regions
 
         [Field(Placeholder = "Etiam porta sem malesuada magna mollis euismod.")]
         public StringField String { get; set; }
+        
+        [Field(Placeholder = "Etiam porta sem malesuada magna mollis euismod.")]
+        public ColorField Color { get; set; }
 
         [Field(Placeholder = "Etiam porta sem malesuada magna mollis euismod.")]
         public TextField Text { get; set; }

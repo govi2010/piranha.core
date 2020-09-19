@@ -125,6 +125,7 @@ var js = [
             "node_modules/dropzone/dist/dropzone.js",
             "node_modules/select2/dist/js/select2.js",
             "node_modules/vuejs-datepicker/dist/vuejs-datepicker.min.js",
+            "node_modules/vue-color/dist/vue-color.min.js",
             "node_modules/simplemde/dist/simplemde.min.js"
         ]
     },
@@ -140,6 +141,7 @@ var js = [
             "node_modules/dropzone/dist/dropzone.js",
             "node_modules/select2/dist/js/select2.js",
             "node_modules/vuejs-datepicker/dist/vuejs-datepicker.min.js",
+            "node_modules/vue-color/dist/vue-color.min.js",
             "node_modules/simplemde/dist/simplemde.min.js"
         ]
     },
@@ -218,6 +220,7 @@ var js = [
 
             "assets/src/js/components/fields/audio-field.vue",
             "assets/src/js/components/fields/checkbox-field.vue",
+            "assets/src/js/components/fields/color-field.vue",
             "assets/src/js/components/fields/data-select-field.vue",
             "assets/src/js/components/fields/date-field.vue",
             "assets/src/js/components/fields/document-field.vue",

@@ -71,6 +71,9 @@ namespace RazorWeb.Models.Regions
 
         [Field(Placeholder = "Etiam porta sem malesuada magna mollis euismod.")]
         public TextField Text { get; set; }
+        
+        [Field(Placeholder = "Etiam porta sem malesuada magna mollis euismod.")]
+        public ColorField Color { get; set; }
 
         [Field]
         public SelectField<StyleType> Style { get; set; }
