@@ -149,7 +149,7 @@ namespace Piranha.Services
         public async Task<IEnumerable<T>> GetAllAsync<T>(Guid? siteId = null) where T : PageBase
         {
             var models = new List<T>();
-            var pages = await _repo.GetAll((await EnsureSiteIdAsync(siteId).ConfigureAwait(false)).Value)
+            var pages = await _repo.GetAll(await EnsureSiteIdAsync(siteId).ConfigureAwait(false))
                 .ConfigureAwait(false);
 
             foreach (var pageId in pages)
@@ -182,7 +182,7 @@ namespace Piranha.Services
         public async Task<IEnumerable<T>> GetAllBlogsAsync<T>(Guid? siteId = null) where T : Models.PageBase
         {
             var models = new List<T>();
-            var pages = await _repo.GetAllBlogs((await EnsureSiteIdAsync(siteId).ConfigureAwait(false)).Value)
+            var pages = await _repo.GetAllBlogs(await EnsureSiteIdAsync(siteId).ConfigureAwait(false))
                 .ConfigureAwait(false);
 
             foreach (var pageId in pages)
@@ -205,7 +205,7 @@ namespace Piranha.Services
         /// <returns>The pages that have a draft</returns>
         public async Task<IEnumerable<Guid>> GetAllDraftsAsync(Guid? siteId = null)
         {
-            return await _repo.GetAllDrafts((await EnsureSiteIdAsync(siteId).ConfigureAwait(false)).Value);
+            return await _repo.GetAllDrafts(await EnsureSiteIdAsync(siteId).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -303,35 +303,75 @@ namespace Piranha.Services
         /// <returns>The model, or null if it doesn't exist</returns>
         public async Task<T> GetByIdAsync<T>(Guid id) where T : PageBase
         {
-            PageBase model = null;
+            return (await GetByIdsAsync<T>(id)).FirstOrDefault();
+        }
 
-            if (typeof(T) == typeof(Models.PageInfo))
-            {
-                model = _cache?.Get<PageInfo>($"PageInfo_{id.ToString()}");
-            }
-            else if (!typeof(DynamicPage).IsAssignableFrom(typeof(T)))
-            {
-                model = _cache?.Get<PageBase>(id.ToString());
+        /// <summary>
+        /// Gets the page models with the specified id's.
+        /// </summary>
+        /// <param name="ids">The unique id's</param>
+        /// <returns>The page models</returns>
+        public async Task<IEnumerable<T>> GetByIdsAsync<T>(params Guid[] ids) where T : PageBase
+        {
+            var ret = new List<T>();
+            var notCached = new List<Guid>();
 
-                if (model != null)
+            // Try to get the requested models from cache
+            foreach (var id in ids)
+            {
+                PageBase model = null;
+
+                if (typeof(T) == typeof(Models.PageInfo))
                 {
-                    await _factory.InitAsync(model, App.PageTypes.GetById(model.TypeId)).ConfigureAwait(false);
+                    model = _cache?.Get<PageInfo>($"PageInfo_{id.ToString()}");
+                }
+                else if (!typeof(DynamicPage).IsAssignableFrom(typeof(T)))
+                {
+                    model = _cache?.Get<PageBase>(id.ToString());
+
+                    if (model != null)
+                    {
+                        await _factory.InitAsync(model, App.PageTypes.GetById(model.TypeId)).ConfigureAwait(false);
+                    }
+                }
+
+                if (model == null)
+                {
+                    notCached.Add(id);
+                }
+                else if (model is T)
+                {
+                    ret.Add(await MapOriginalAsync((T)model).ConfigureAwait(false));
                 }
             }
 
-            if (model == null)
+            // Get the models not available in cache from the
+            // repository.
+            if (notCached.Count > 0)
             {
-                model = await _repo.GetById<T>(id).ConfigureAwait(false);
+                var models = await _repo.GetByIds<T>(notCached.ToArray()).ConfigureAwait(false);
 
-                await OnLoadAsync(model).ConfigureAwait(false);
+                foreach (var model in models.Where(m => m is T))
+                {
+                    await OnLoadAsync(model).ConfigureAwait(false);
+                    ret.Add(await MapOriginalAsync((T)model).ConfigureAwait(false));
+                }
             }
 
-            if (model != null && model is T)
+            // Sort the output in the same order as the input array
+            var sorted = new List<T>();
+            foreach (var id in ids)
             {
-                return await MapOriginalAsync((T)model).ConfigureAwait(false);
+                var model = ret.FirstOrDefault(m => m.Id == id);
+
+                if (model != null)
+                {
+                    sorted.Add(model);
+                }
             }
-            return null;
+            return sorted;
         }
+
 
         /// <summary>
         /// Gets the page model with the specified slug.
@@ -727,6 +767,12 @@ namespace Piranha.Services
                     model.Created = DateTime.Now;
                 }
 
+                // Ensure content id
+                if (model.ContentId == Guid.Empty)
+                {
+                    model.ContentId = pageId;
+                }
+
                 // Validate model
                 var context = new ValidationContext(model);
                 Validator.ValidateObject(model, context, true);
@@ -892,7 +938,7 @@ namespace Piranha.Services
         /// </summary>
         /// <param name="siteId">The optional site id</param>
         /// <returns>The site id</returns>
-        private async Task<Guid?> EnsureSiteIdAsync(Guid? siteId)
+        private async Task<Guid> EnsureSiteIdAsync(Guid? siteId)
         {
             if (!siteId.HasValue)
             {
@@ -903,7 +949,7 @@ namespace Piranha.Services
                     return site.Id;
                 }
             }
-            return siteId;
+            return siteId.Value;
         }
 
         /// <summary>

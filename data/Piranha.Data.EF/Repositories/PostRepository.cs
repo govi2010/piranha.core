@@ -475,9 +475,6 @@ namespace Piranha.Repositories
 
                 _db.Posts.Remove(model);
 
-                //
-                // TODO
-                //
                 // If this is a published post, update last modified for the
                 // blog page for caching purposes.
                 if (model.Published.HasValue)
@@ -1067,7 +1064,7 @@ namespace Piranha.Repositories
             model.EnableComments = post.EnableComments;
             if (model.EnableComments)
             {
-                model.CommentCount = await _db.PostComments.CountAsync(c => c.PostId == model.Id).ConfigureAwait(false);
+                model.CommentCount = await _db.PostComments.CountAsync(c => c.PostId == model.Id && c.IsApproved).ConfigureAwait(false);
             }
             model.CloseCommentsAfterDays = post.CloseCommentsAfterDays;
 

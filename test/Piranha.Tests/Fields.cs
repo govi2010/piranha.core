@@ -170,6 +170,7 @@ namespace Piranha.Tests
             var value = true;
 
             Piranha.Extend.Fields.CheckBoxField field = value;
+
             Assert.Equal(value, field.Value);
         }
 
@@ -274,6 +275,24 @@ namespace Piranha.Tests
             Assert.True(field1 != field2);
             Assert.True(!field1.Equals(field2));
             Assert.True(!field1.Equals((object)field2));
+        }
+
+        [Fact]
+        public void HtmlFieldTitle() {
+            Piranha.Extend.Fields.HtmlField field = "<p>Html value</p>";
+
+            Assert.Equal("Html value", field.GetTitle());
+        }
+
+        [Fact]
+        public void HtmlFieldTitleMaxLength() {
+            var sb = new StringBuilder();
+            for (var n = 0; n < 10; n++) {
+                sb.Append("NineChars");
+            }
+
+            Piranha.Extend.Fields.HtmlField field = sb.ToString();
+            Assert.Equal(43, field.GetTitle().Length);
         }
 
         [Fact]
@@ -870,6 +889,18 @@ namespace Piranha.Tests
             Assert.Equal(43, field.GetTitle().Length);
         }
 
+        [Fact]
+        public void ReadonlyFieldConversions()
+        {
+            var value = "Value";
+
+            Piranha.Extend.Fields.ReadonlyField field = value;
+            Assert.Equal(value, field.Value);
+
+            string value2 = field;
+            Assert.Equal(value, value2);
+        }
+
         private IApi CreateApi()
         {
             var factory = new ContentFactory(services);
@@ -881,6 +912,10 @@ namespace Piranha.Tests
                 factory,
                 new AliasRepository(db),
                 new ArchiveRepository(db),
+                new ContentRepository(db, serviceFactory),
+                new ContentGroupRepository(db),
+                new ContentTypeRepository(db),
+                new LanguageRepository(db),
                 new Piranha.Repositories.MediaRepository(db),
                 new PageRepository(db, serviceFactory),
                 new PageTypeRepository(db),

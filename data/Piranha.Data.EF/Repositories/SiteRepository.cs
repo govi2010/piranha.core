@@ -42,6 +42,8 @@ namespace Piranha.Repositories
         /// <returns>The available models</returns>
         public async Task<IEnumerable<Models.Site>> GetAll()
         {
+            Language defaultLanguage = null;
+
             var sites = await _db.Sites
                 .AsNoTracking()
                 .OrderBy(s => s.Title)
@@ -52,9 +54,16 @@ namespace Piranha.Repositories
 
             foreach (var site in sites)
             {
+                if (!site.LanguageId.HasValue && defaultLanguage == null)
+                {
+                    defaultLanguage = await _db.Languages
+                        .FirstOrDefaultAsync(l => l.IsDefault);
+                }
+
                 models.Add(new Models.Site
                 {
                     Id = site.Id,
+                    LanguageId = site.LanguageId.HasValue ? site.LanguageId.Value : defaultLanguage.Id,
                     SiteTypeId = site.SiteTypeId,
                     Title = site.Title,
                     InternalId = site.InternalId,
@@ -84,9 +93,17 @@ namespace Piranha.Repositories
 
             if (site != null)
             {
+                Language defaultLanguage = null;
+                if (!site.LanguageId.HasValue)
+                {
+                    defaultLanguage = await _db.Languages
+                        .FirstOrDefaultAsync(l => l.IsDefault);
+                }
+
                 return new Models.Site
                 {
                     Id = site.Id,
+                    LanguageId = site.LanguageId.HasValue ? site.LanguageId.Value : defaultLanguage.Id,
                     SiteTypeId = site.SiteTypeId,
                     Title = site.Title,
                     InternalId = site.InternalId,
@@ -116,9 +133,17 @@ namespace Piranha.Repositories
 
             if (site != null)
             {
+                Language defaultLanguage = null;
+                if (!site.LanguageId.HasValue)
+                {
+                    defaultLanguage = await _db.Languages
+                        .FirstOrDefaultAsync(l => l.IsDefault);
+                }
+
                 return new Models.Site
                 {
                     Id = site.Id,
+                    LanguageId = site.LanguageId.HasValue ? site.LanguageId.Value : defaultLanguage.Id,
                     SiteTypeId = site.SiteTypeId,
                     Title = site.Title,
                     InternalId = site.InternalId,
@@ -147,9 +172,17 @@ namespace Piranha.Repositories
 
             if (site != null)
             {
+                Language defaultLanguage = null;
+                if (!site.LanguageId.HasValue)
+                {
+                    defaultLanguage = await _db.Languages
+                        .FirstOrDefaultAsync(l => l.IsDefault);
+                }
+
                 return new Models.Site
                 {
                     Id = site.Id,
+                    LanguageId = site.LanguageId.HasValue ? site.LanguageId.Value : defaultLanguage.Id,
                     SiteTypeId = site.SiteTypeId,
                     Title = site.Title,
                     InternalId = site.InternalId,
@@ -253,6 +286,7 @@ namespace Piranha.Repositories
                 };
                 await _db.Sites.AddAsync(site).ConfigureAwait(false);
             }
+            site.LanguageId = model.LanguageId;
             site.SiteTypeId = model.SiteTypeId;
             site.Title = model.Title;
             site.InternalId = model.InternalId;
